@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.bogard1.doom",
+  "name": "Doom",
+  "version": "0.1.0",
+  "author": "bogard1",
+  "license": "MIT",
+  "description": "Play Doom from the Omarchy bar — pick a WAD and go.",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "BarWidget.qml" },
+  "barWidget": {
+    "displayName": "Doom",
+    "description": "Pick a WAD and play Doom in a bar panel",
+    "category": "Fun",
+    "allowMultiple": false
+  }
+}
