@@ -204,6 +204,7 @@ Panel {
 
       Text {
         text: "Doom"
+        textFormat: Text.PlainText
         color: Color.popups.text
         font.family: Style.font.family
         font.pixelSize: Style.font.body
@@ -213,6 +214,7 @@ Panel {
       Text {
         visible: !root.checkedInstalled
         text: "Checking for " + root.doomBinary + "…"
+        textFormat: Text.PlainText
         color: Color.popups.text
         font.family: Style.font.family
       }
@@ -224,6 +226,7 @@ Panel {
         Text {
           anchors.verticalCenter: parent.verticalCenter
           text: root.doomBinary + " isn't installed"
+          textFormat: Text.PlainText
           color: Color.popups.text
           font.family: Style.font.family
         }
@@ -240,6 +243,7 @@ Panel {
         Text {
           anchors.verticalCenter: parent.verticalCenter
           text: "No WAD selected"
+          textFormat: Text.PlainText
           color: Color.popups.text
           font.family: Style.font.family
         }
@@ -256,6 +260,13 @@ Panel {
 
         Text {
           text: root.wadName
+          // Explicit, not cosmetic: wadName comes straight from a
+          // user-picked file's basename. QML's default Text.AutoText
+          // detects and renders markup-shaped content as rich text, so a
+          // WAD file named to look like an <img> tag would make this
+          // label fetch an attacker-chosen remote resource just by being
+          // displayed. Forcing plain text closes that off entirely.
+          textFormat: Text.PlainText
           color: Color.popups.text
           font.family: Style.font.family
         }
@@ -290,6 +301,7 @@ Panel {
         Text {
           anchors.verticalCenter: parent.verticalCenter
           text: root.gameHidden ? "Doom is paused (hidden)" : "Doom is running"
+          textFormat: Text.PlainText
           color: Color.popups.text
           font.family: Style.font.family
         }
