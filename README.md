@@ -68,8 +68,8 @@ This removes the plugin directory and disables the bar icon. It doesn't
 touch anything else — no window rules or config files are added anywhere
 outside the plugin's own directory, so there's nothing else to clean up.
 `chocolate-doom` itself, and any WAD files you picked, are untouched;
-remove those yourself (`sudo pacman -R chocolate-doom`) if you don't want
-them either.
+remove those yourself through your package manager and file manager if
+you don't want them either.
 
 ## Design notes
 
