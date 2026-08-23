@@ -3,13 +3,18 @@ import Quickshell
 import Quickshell.Io
 import qs.Ui
 
-// Bar icon for the Doom plugin. A click opens/closes Panel.qml, which owns
-// the whole WAD-pick -> play -> pause lifecycle.
+// Bar icon for the Doom plugin. Left click opens/closes Panel.qml (the
+// WAD-pick -> play flow) while no game is running; once one is, left
+// click instead pauses+hides it / resumes+shows it (see Panel.qml's
+// toggleGameVisibility()), so the panel itself -- and its Quit/Change WAD
+// buttons -- stay reachable via right click instead.
 BarWidget {
   id: root
   moduleName: "io.github.bogard1.doom"
 
   readonly property bool opened: panelLoader.item ? panelLoader.item.opened === true : false
+  readonly property bool gameRunning: panelLoader.item ? panelLoader.item.gameRunning === true : false
+  readonly property bool gameHidden: panelLoader.item ? panelLoader.item.gameHidden === true : false
 
   function open() { if (panelLoader.item) panelLoader.item.open() }
   function close() { if (panelLoader.item) panelLoader.item.close() }
@@ -55,12 +60,17 @@ BarWidget {
     id: button
     anchors.fill: parent
     bar: root.bar
-    text: "☠"
+    text: root.gameHidden ? "⏸" : "☠"
     labelVisible: true
     hasVisualContent: true
     horizontalMargin: 8.75
     verticalPadding: 8.75
 
-    onPressed: function(b) { root.togglePanel() }
+    onPressed: function(b) {
+      var panel = panelLoader.item
+      if (b === Qt.RightButton) { root.togglePanel(); return }
+      if (panel && panel.gameRunning) panel.toggleGameVisibility()
+      else root.togglePanel()
+    }
   }
 }

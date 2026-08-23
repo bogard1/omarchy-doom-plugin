@@ -6,13 +6,23 @@ your own), so the panel always asks for one first.
 
 ## What it does
 
-- Adds a bar-widget icon (`☠`) that opens a small floating panel.
+- Adds a bar-widget icon (`☠`, `⏸` while a game is paused/hidden — see
+  below) that left-click opens as a small floating panel while no game is
+  running.
 - The panel walks through: is `chocolate-doom` installed → do you have a
-  WAD selected → play.
+  WAD selected → pick a resolution (`800x600` to `1920x1080`) → play.
 - **Play** launches `chocolate-doom` as a plain, independent, floating
   window (not fullscreen, not tiled — see [Design notes](#design-notes)
   below) and closes the panel so the game gets real keyboard focus.
-- Reopen the panel any time to **Quit** the running game or **Change WAD**.
+- Once a game is running, **left-clicking the bar icon again pauses it and
+  hides its window** (parked on a hidden Hyprland special workspace, and
+  the icon switches to `⏸`); clicking once more resumes and reveals it
+  exactly where it was. This is a plain click-to-toggle, not automatic
+  pause-on-focus-loss (see [Design notes](#design-notes) for why that
+  didn't work out).
+- **Right-click the bar icon** any time to reach the panel itself (e.g. to
+  **Quit** the running game or **Change WAD**) — left click is claimed by
+  the pause/hide toggle once a game is running.
 
 ## Requirements
 
@@ -67,22 +77,52 @@ string-based dispatcher protocol with a structured Lua API
 (`hl.dsp.window.*`). Neither `hyprctl dispatch <request>` nor Quickshell's
 `Hyprland.dispatch()` QML binding (which sends that same legacy string)
 work against it — confirmed by writing directly to Hyprland's IPC socket
-and getting back `hl.dispatch: expected a dispatcher`. Exact positioning
-was dropped, but plain floating (see `bin/float-doom.sh`) was worth
-salvaging on its own: `hyprctl eval "hl.dispatch(hl.dsp.window.float({
-action = 'toggle' }))"` is that branch's working equivalent of
-`hyprctl dispatch setfloating` — the difference between calling a
-dispatcher (`hl.dispatch(hl.dsp.window.float(...))`) and merely
-constructing one to bind to a key (`hl.dsp.window.float(...)` alone, the
-form every example in Omarchy's own bindings uses) cost some time to
-find. `float-doom.sh` waits for the game to actually be the focused
-window before calling it, then runs once, detached, right after launch.
-On classic (non-Lua) Hyprland the `hyprctl eval` call just fails
-harmlessly and the window stays tiled — no worse off than not having this
-script at all. No address-targeted absolute positioning shows up anywhere
-in Omarchy's `hl.dsp.window.*` examples (`move`/`resize` there take
-workspace/relative-delta arguments, not screen coordinates), so exact
-pixel alignment on this Hyprland branch remains unsolved.
+and getting back `hl.dispatch: expected a dispatcher`.
+
+Exact panel-box alignment was dropped (there's no arbitrary-pixel-position
+dispatcher in this API, only workspace moves, resize, and center — see
+below), but this branch's own dispatch API turned out to cover floating,
+sizing, and centering just fine, all driven from `bin/*.sh`
+via `hyprctl eval "hl.dispatch(hl.dsp.window.<action>(...))"`
+(`hl.dispatch(...)` actually *calls* a dispatcher; `hl.dsp.window.x(...)`
+alone just *constructs* one to bind to a key, the only form any example
+in Omarchy's own bindings uses, which cost some time to untangle):
+
+- `hl.dsp.window.float({ action = "toggle" })` — the equivalent of
+  `hyprctl dispatch setfloating`.
+- `hl.dsp.window.resize({ x = W, y = H })` — **absolute** width/height,
+  keyed confusingly as `x`/`y`. Add `relative = true` (the only form
+  shown in Omarchy's bindings) and they become deltas instead.
+- `hl.dsp.window.center()` — the equivalent of `hyprctl dispatch
+  centerwindow`, no arguments.
+- `hl.dsp.window.move({ workspace = "special:doom" })` +
+  `hl.dsp.workspace.toggle_special("doom")` — parks the window on a
+  hidden scratchpad-style workspace and reveals/hides it on demand; this
+  is what drives the bar icon's pause/hide-resume/show toggle (`bin/
+  toggle-doom.sh`; see the "What it does" section above).
+
+`bin/float-doom.sh` (float + resize + center, run once right after
+launch) gets away with operating on whatever window currently has
+focus, confirmed beforehand by polling `hyprctl activewindow` — right
+after launch, that's reliably the game. `bin/toggle-doom.sh`'s hide step
+can't make that assumption: it runs whenever the bar icon is clicked,
+which could be long after launch, and by then whatever the player looked
+at last (a terminal, a browser) is the focused window, not the game — an
+early version of this script hid *that* instead, moving the wrong window
+into the special workspace. The fix, and proof that this API *does*
+support address-targeting despite no example anywhere showing it:
+`hl.get_windows({ class = "chocolate-doom" })` returns matching window
+objects regardless of focus, and passing one as the `window` field on a
+dispatcher's argument table (e.g. `hl.dsp.window.move({ workspace = ...,
+window = w[1] })`) targets that window specifically. Confirmed by
+hiding the game with an unrelated app focused in a different workspace
+and checking nothing else moved. `toggle-doom.sh` logs every `hyprctl
+eval` call and its output to `$XDG_STATE_HOME/io.github.bogard1.doom/
+toggle.log`, timestamped, for diagnosing anything similar.
+
+On classic (non-Lua) Hyprland all of the `hyprctl eval` calls above just
+fail harmlessly and the window stays wherever it would otherwise have
+ended up — no worse off than not having these scripts at all.
 
 **Auto-pausing the game when the panel loses focus.** Tried via `SIGSTOP`
 on blur / `SIGCONT` on refocus, using Hyprland's toplevel-tracking API to
@@ -95,11 +135,18 @@ race in the focus-tracking logic would immediately `SIGSTOP` the game
 that had just started, or leave it receiving no input at all. None of the
 fixes attempted (suppressing the popup's dismissal while a game is
 running, gating the focus watcher on a confirmed window match) resolved
-it reliably enough to ship.
+it reliably enough to ship. What shipped instead is a plain click, not an
+automatic one: left-clicking the bar icon while a game is running pauses
+and hides it (via the special-workspace trick above); clicking again
+resumes and reveals it. No focus-tracking, no race — it only ever runs
+from an explicit click.
 
-If you want to pick either of these back up — e.g. once Quickshell grows
-Lua-dispatch support for Hyprland 0.56+, or with more time to work out the
-focus-ownership fight — the approach above is the place to start from.
+If you want to pick the pixel-alignment idea back up — e.g. once
+Quickshell grows Lua-dispatch support for Hyprland 0.56+, or once this
+API turns up an arbitrary-pixel-position dispatcher (address-targeting a
+window for the operations that already exist, at least, is solved — see
+the `hl.get_windows` note above) — the approach above is the place to
+start from.
 
 ## Files
 
@@ -109,7 +156,8 @@ focus-ownership fight — the approach above is the place to start from.
 | `BarWidget.qml`    | Bar icon, opens/closes the panel                     |
 | `Panel.qml`        | State machine: install check → pick WAD → play       |
 | `bin/pick-wad.sh`  | `zenity --file-selection` wrapper for choosing a WAD |
-| `bin/float-doom.sh` | Floats the game window post-launch via Hyprland's Lua dispatch API |
+| `bin/float-doom.sh` | Floats, resizes, and centers the game window post-launch |
+| `bin/toggle-doom.sh` | Hides/reveals the running game via a Hyprland special workspace |
 
 ## License
 

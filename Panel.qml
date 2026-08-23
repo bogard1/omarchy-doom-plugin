@@ -35,6 +35,7 @@ Panel {
   readonly property string wadName: wadPath.length ? wadPath.split("/").pop() : ""
 
   property bool gameRunning: false
+  property bool gameHidden: false
 
   property string resolution: "1024x768"
   readonly property var resolutionOptions: ["800x600", "1024x768", "1280x720", "1920x1080"]
@@ -133,7 +134,32 @@ Panel {
     onStarted: root.gameRunning = true
     onExited: function(exitCode, exitStatus) {
       root.gameRunning = false
+      root.gameHidden = false
     }
+  }
+
+  // ---- Pause + hide / resume + show --------------------------------------
+  // Bound to clicking the bar icon while a game is running (see
+  // BarWidget.qml) rather than to any automatic focus-loss detection -- an
+  // earlier revision tried that and it fought the game for keyboard focus
+  // (see README's Design notes). This only ever runs from an explicit
+  // click, so there's no race to get wrong.
+  function toggleGameVisibility() {
+    if (!root.gameRunning) return
+    if (root.gameHidden) root.showGame()
+    else root.hideGame()
+  }
+
+  function hideGame() {
+    gameProcess.signal(19) // SIGSTOP
+    Quickshell.execDetached([root.pluginDir + "/bin/toggle-doom.sh", "hide", root.doomBinary])
+    root.gameHidden = true
+  }
+
+  function showGame() {
+    gameProcess.signal(18) // SIGCONT
+    Quickshell.execDetached([root.pluginDir + "/bin/toggle-doom.sh", "show", root.doomBinary])
+    root.gameHidden = false
   }
 
   function quitGame() {
@@ -263,7 +289,7 @@ Panel {
 
         Text {
           anchors.verticalCenter: parent.verticalCenter
-          text: "Doom is running"
+          text: root.gameHidden ? "Doom is paused (hidden)" : "Doom is running"
           color: Color.popups.text
           font.family: Style.font.family
         }
