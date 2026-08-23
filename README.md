@@ -1,5 +1,7 @@
 # Doom — an Omarchy bar plugin
 
+![preview](preview.png)
+
 Play Doom straight from the Omarchy bar: click the skull icon, pick a WAD,
 and go. There's no bundled WAD (id Software's IWADs are commercial — bring
 your own), so the panel always asks for one first.
@@ -55,6 +57,19 @@ git clone https://github.com/bogard1/omarchy-doom-plugin.git \
 omarchy-shell shell rescanPlugins
 omarchy plugin enable io.github.bogard1.doom
 ```
+
+## Uninstalling
+
+```bash
+omarchy plugin remove io.github.bogard1.doom
+```
+
+This removes the plugin directory and disables the bar icon. It doesn't
+touch anything else — no window rules or config files are added anywhere
+outside the plugin's own directory, so there's nothing else to clean up.
+`chocolate-doom` itself, and any WAD files you picked, are untouched;
+remove those yourself (`sudo pacman -R chocolate-doom`) if you don't want
+them either.
 
 ## Design notes
 
