@@ -25,6 +25,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --yes qt6-declarative-dev-tools
+          echo "/usr/lib/qt6/bin" >> "$GITHUB_PATH"
 
       - name: Parse QML files
         run: find . -name '*.qml' -print0 | xargs -0 -r -n1 qmlformat > /dev/null
