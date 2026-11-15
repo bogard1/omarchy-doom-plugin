@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-15
+
+### Changed
+
+- Updated palette references for Omarchy 4.5 / Qt 6.12, where Qt also
+  provides a `Color` type.
+- Use Omarchy's `ShellIpc` to safely elect one IPC handler when the widget is
+  shown on multiple monitors.
+- Place new installations in the right bar section by default.
+
 ## [0.1.1] - 2026-10-25
 
 ### Fixed

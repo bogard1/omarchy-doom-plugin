@@ -28,6 +28,8 @@ your own), so the panel always asks for one first.
 
 ## Requirements
 
+- Omarchy 4.5 or newer. This release uses the current shell palette and IPC
+  APIs.
 - [`chocolate-doom`](https://aur.archlinux.org/packages/chocolate-doom) —
   AUR-only on Arch (`yay -S chocolate-doom` / `paru -S chocolate-doom`).
   The panel detects if it's missing and offers a one-click terminal with
