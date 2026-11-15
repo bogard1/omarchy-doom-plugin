@@ -46,7 +46,10 @@ BarWidget {
     }
   }
 
-  IpcHandler {
+  // ShellIpc elects a single handler when the bar is present on multiple
+  // monitors, avoiding duplicate-target warnings while allowing takeover when
+  // the leading monitor disappears.
+  ShellIpc {
     target: "io.github.bogard1.doom"
 
     function open() { root.open() }

@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import qs.Ui
 import qs.Commons
+import qs.Commons as Commons
 
 // Doom panel: pick a WAD, then play. This deliberately does the minimum:
 // launch chocolate-doom as a plain, independent window and get out of the
@@ -205,7 +206,7 @@ Panel {
       Text {
         text: "Doom"
         textFormat: Text.PlainText
-        color: Color.popups.text
+        color: Commons.Color.popups.text
         font.family: Style.font.family
         font.pixelSize: Style.font.body
         font.bold: true
@@ -215,7 +216,7 @@ Panel {
         visible: !root.checkedInstalled
         text: "Checking for " + root.doomBinary + "…"
         textFormat: Text.PlainText
-        color: Color.popups.text
+        color: Commons.Color.popups.text
         font.family: Style.font.family
       }
 
@@ -227,7 +228,7 @@ Panel {
           anchors.verticalCenter: parent.verticalCenter
           text: root.doomBinary + " isn't installed"
           textFormat: Text.PlainText
-          color: Color.popups.text
+          color: Commons.Color.popups.text
           font.family: Style.font.family
         }
         Button {
@@ -244,7 +245,7 @@ Panel {
           anchors.verticalCenter: parent.verticalCenter
           text: "No WAD selected"
           textFormat: Text.PlainText
-          color: Color.popups.text
+          color: Commons.Color.popups.text
           font.family: Style.font.family
         }
         Button {
@@ -267,7 +268,7 @@ Panel {
           // label fetch an attacker-chosen remote resource just by being
           // displayed. Forcing plain text closes that off entirely.
           textFormat: Text.PlainText
-          color: Color.popups.text
+          color: Commons.Color.popups.text
           font.family: Style.font.family
         }
 
@@ -302,7 +303,7 @@ Panel {
           anchors.verticalCenter: parent.verticalCenter
           text: root.gameHidden ? "Doom is paused (hidden)" : "Doom is running"
           textFormat: Text.PlainText
-          color: Color.popups.text
+          color: Commons.Color.popups.text
           font.family: Style.font.family
         }
         Button {
